@@ -35,12 +35,12 @@ namespace DurableFunctionsHumanInteractionPattern
         }
 
         [FunctionName(nameof(Constants.RunEscalation))]
-        public void RunEscalation([ActivityTrigger] IDurableActivityContext context)
+        public void RunEscalation([ActivityTrigger] ExpenseClaim expenseClaim)
         {
             _logger.LogInformation($"{nameof(RunEscalation)}");
 
             // TODO: escalate
-            _notifier.Notify("escalated");
+            _notifier.Notify($"escalated: {expenseClaim.Description}, ${expenseClaim.Cost}");
         }
     }
 }

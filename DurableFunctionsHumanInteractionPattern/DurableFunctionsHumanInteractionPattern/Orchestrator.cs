@@ -22,14 +22,19 @@ namespace DurableFunctionsHumanInteractionPattern
             var durableTimeout = context.CreateTimer(dueTime, timeoutCts.Token);
 
             var approvalEvent = context.WaitForExternalEvent<bool>(Constants.WaitForExternalApprovalEvent);
-            if (approvalEvent == await Task.WhenAny(approvalEvent, durableTimeout))
+            var result = await Task.WhenAny(approvalEvent, durableTimeout);
+            if (result.IsCompleted)
             {
                 timeoutCts.Cancel();
-                await context.CallActivityAsync<bool>(Constants.RunProcessApproval, approvalEvent.Result);
-            }
-            else
-            {
-                await context.CallActivityAsync(Constants.RunEscalation, null);
+
+                if (approvalEvent.Result)
+                {
+                    await context.CallActivityAsync<bool>(Constants.RunProcessApproval, approvalEvent.Result);
+                }
+                else
+                {
+                    await context.CallActivityAsync(Constants.RunEscalation, expense);
+                }
             }
         }
     }
